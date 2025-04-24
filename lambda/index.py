@@ -4,7 +4,9 @@ import os
 import boto3
 import re  # 正規表現モジュールをインポート
 from botocore.exceptions import ClientError
-import requests
+
+import urllib.request
+
 
 # Lambda コンテキストからリージョンを抽出する関数
 def extract_region_from_arn(arn):
@@ -19,7 +21,6 @@ bedrock_client = None
 
 # モデルID
 MODEL_ID = os.environ.get("MODEL_ID", "us.amazon.nova-lite-v1:0")
-API_URL = os.environ.get("API_URL")
 
 def lambda_handler(event, context):
     try:
@@ -111,10 +112,14 @@ def lambda_handler(event, context):
         }
 
         # APIを呼び出す
-        responce = requests.post(API_URL, json=request_payload)
+        url = os.environ.get("API_URL")
+        data = json.dumps(request_payload).encode('utf-8')
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req) as response:
+            response = json.loads(response.read().decode('utf-8'))
         
         # レスポンスからAssistantの応答を取得
-        assistant_response = responce.json().get("generated_text", "")
+        assistant_response = response.json().get("generated_text", "")
 
         # アシスタントの応答を会話履歴に追加
         messages.append({
