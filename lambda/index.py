@@ -116,10 +116,10 @@ def lambda_handler(event, context):
         data = json.dumps(request_payload).encode('utf-8')
         req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
         with urllib.request.urlopen(req) as response:
-            response = json.loads(response.read().decode('utf-8'))
+            response_body = json.loads(response.read().decode('utf-8'))
         
         # レスポンスからAssistantの応答を取得
-        assistant_response = response.json().get("generated_text", "")
+        assistant_response = response_body.json().get("generated_text", "")
 
         # アシスタントの応答を会話履歴に追加
         messages.append({
